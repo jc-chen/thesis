@@ -64,7 +64,7 @@ There are several values that need to be tweaked, depending on what kind of trai
 
 
 #### Testing
-
+TODO results.py 
 
 
 ### Visualization with tensorboard
@@ -101,4 +101,6 @@ def initialize_tensorboard_outputs():
 
 
 ### Defining your own Model class
+TODO
+
 
