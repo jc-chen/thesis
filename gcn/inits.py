@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-
+'''A few methods of initializing learned matrices'''
 
 def uniform(shape, scale=0.05, name=None):
     """Uniform init."""

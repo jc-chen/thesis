@@ -49,7 +49,6 @@ class Model(object):
 
     def build(self):
         """ Wrapper for _build() """
-        #print(self.inputs.get_shape(),"eeeeeeee")
 
         with tf.variable_scope(self.name):
             self._build()
@@ -145,7 +144,6 @@ class JCNN(Model):
         self.input_dim = input_dim
         # self.input_dim = self.inputs.get_shape().as_list()[1]  # To be supported in future Tensorflow versions
 
-        # this should be molecule outputs now
         self.molecule_number_of_outputs = placeholders['labels'].get_shape().as_list()[1]
         self.molecule_partitions = placeholders['molecule_partitions']
         self.num_molecules = placeholders['num_molecules']
@@ -169,9 +167,6 @@ class JCNN(Model):
     def _mae(self):
         self.mae = mean_absolute_error(self.outputs, self.normalized_targets,
                                     self.target_mask)
-    # def _maeUnnormalized(self):
-    #     self.mae = mean_absolute_error_unnormalized(self.outputs, self.normalized_targets,
-    #                                 self.target_mask)
 
     def _build(self):
 
@@ -245,3 +240,4 @@ class JCNN(Model):
                                     logging=self.logging))
     def predict(self):
         return self.outputs*self.target_stdev+self.target_mean
+        

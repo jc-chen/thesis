@@ -4,34 +4,24 @@ from __future__ import print_function
 import time
 import tensorflow as tf
 
-from gcn.utils2 import *
+from gcn.utils import *
 from gcn.models import JCNN
 
 import os
-
-#usage
-#python train.py --output_name my_new_model_name --input_name my_restored_model_name
-
-#load_distros('../cleaned/')
-#load_distros('../shuffled/1000/')
-
-
-
+import sys
 
 # Settings
 flags = tf.app.flags
 FLAGS = flags.FLAGS
-red = 20
-flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
 flags.DEFINE_string('model', 'jcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
 flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
 flags.DEFINE_integer('epochs', 700, 'Number of epochs to train.')
-flags.DEFINE_integer('hidden1', 100-red, 'Number of units in hidden layer 1.')
-flags.DEFINE_integer('hidden2', 80-red, 'Number of units in hidden layer 2.')
-flags.DEFINE_integer('hidden3', 80-red, 'Number of units in hidden layer 3.')
-flags.DEFINE_integer('hidden4', 80-red, 'Number of units in hidden layer 4.')
-flags.DEFINE_integer('hidden5', 90-red, 'Number of units in hidden layer 5.')
-flags.DEFINE_integer('hidden6', 90-red, 'Number of units in hidden layer 6.')
+flags.DEFINE_integer('hidden1', 100, 'Number of units in hidden layer 1.')
+flags.DEFINE_integer('hidden2', 80, 'Number of units in hidden layer 2.')
+flags.DEFINE_integer('hidden3', 80, 'Number of units in hidden layer 3.')
+flags.DEFINE_integer('hidden4', 80, 'Number of units in hidden layer 4.')
+flags.DEFINE_integer('hidden5', 90, 'Number of units in hidden layer 5.')
+flags.DEFINE_integer('hidden6', 90, 'Number of units in hidden layer 6.')
 flags.DEFINE_integer('hidden7', 28, 'Number of units in hidden layer 7.')
 flags.DEFINE_integer('hidden8', 28, 'Number of units in hidden layer 8.')
 flags.DEFINE_integer('hidden9', 30, 'Number of units in hidden layer 9.')
@@ -46,198 +36,246 @@ flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 
 # command line arguments
 flags.DEFINE_integer('random_seed',12,'random seed for repeatability')
-flags.DEFINE_string('data_path','error','data path')
+flags.DEFINE_string('data_input_path',sys.argv[1],'data path')
 flags.DEFINE_string('dir_model','models/','directory for storing saved models')
-flags.DEFINE_string('output_name','unnamed','name of the saved model')
+flags.DEFINE_string('output_name','unnamed_model','name of the saved model')
 flags.DEFINE_string('input_name',None,'name of the saved model')
 
-flags.DEFINE_integer('load_previous',0,'load_previous')
-flags.DEFINE_string('pklpath','error!!!','pklpath')
-
-
-def build_summaries():
-    train_loss = tf.Variable(0.)
-    train_acc = tf.Variable(0.)
-
-    a = tf.summary.scalar("Train Loss", train_loss)
-    b = tf.summary.scalar("Train Acc", train_acc)
-
-    summary_vars = [train_loss,train_acc]
-    summary_ops = tf.summary.merge([a,b])
-    summary_writer = tf.summary.FileWriter('tensorboard/'+FLAGS.output_name+'/',sess.graph)
-
-    return summary_ops, summary_vars, summary_writer
-
-
-if not os.path.exists(FLAGS.dir_model):
-    os.makedirs(FLAGS.dir_model)
+# flags for saving and loading data
+flags.DEFINE_bool('should_load_previous_data', False, 'should we load data from a previous execution?')
+flags.DEFINE_string('data_output_path', None, 'data_output_path')
 
 # Set random seed
 seed = FLAGS.random_seed
 np.random.seed(seed)
 tf.set_random_seed(seed)
 
-# Load data
-load_previous = FLAGS.load_previous
-pickle=1
-#pklpath = '10kdipole/'
-pklpath = FLAGS.pklpath
-if not os.path.exists('./loaded_data/' + pklpath):
-    os.makedirs('./loaded_data/' + pklpath)
+# make sure directories are properly set
+if not os.path.exists(FLAGS.dir_model):
+    os.makedirs(FLAGS.dir_model)
+if FLAGS.data_input_path[-1] is not "/":
+  FLAGS.data_input_path += "/"
+if FLAGS.data_output_path is not None:
+  if not os.path.exists(FLAGS.data_output_path):
+      os.makedirs(FLAGS.data_output_path)
+  if not FLAGS.data_output_path[-1]=="/":
+      FLAGS.data_output_path += "/"
 
-[adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data3(FLAGS.data_path,pklpath,pickle,load_previous)
-#[adj_new,features_new,y_new,molecule_partitions_new,num_molecules_new]=load_data_new(data_path_new)
-
-#support_new = [preprocess_adj(adj_new)]
-#features_new = preprocess_features(features_new)
-
-print("Finished loading data!")
-
-
-# Some preprocessing
-features = preprocess_features(features)
+# get model executable. Add your own model!
 if FLAGS.model == 'jcnn':
-    support = preprocess_adj(adj)
-    num_supports = len(adj)
-    model_func = JCNN
+    model_constructor = JCNN
+# if FLAGS.model == 'your model':
+#     model_constructor = your_model
 else:
     raise ValueError('Invalid argument for model: ' + str(FLAGS.model))
 
+def train(data, placeholders):
+    start_time = time.time()
+    feed_dict = construct_feed_dict(data, placeholders)
+    outs = sess.run([model.opt_op, model.loss, model.accuracy, model.outputs, model.mae], feed_dict=feed_dict)
+    end_time = time.time()
+    train_outputs = {
+        'loss': outs[1],
+        'accuracy': outs[2],
+        'targets': outs[3],
+        'mean_absolute_error': outs[4],
+        'duration': (end_time - start_time)
+    }
+    return train_outputs
+
+def evaluate(data, placeholders):
+    start_time = time.time()
+    feed_dict = construct_feed_dict(data, placeholders)
+    outs = sess.run([model.loss, model.accuracy, model.mae], feed_dict=feed_dict)
+    end_time = time.time()
+    evaluation_outputs = {
+        'loss': outs[0],
+        'accuracy': outs[1],
+        'mean_absolute_error': outs[2],
+        'duration': (end_time - start_time)
+    }
+    return evaluation_outputs
+
+def initialize_tensorboard_outputs():
+    train_loss = tf.Variable(0.)
+    train_acc = tf.Variable(0.)
+    
+    a = tf.summary.scalar("Train Loss", train_loss)
+    b = tf.summary.scalar("Train Acc", train_acc)
+    
+    summary_ops = tf.summary.merge([a, b])
+
+    visualization_data = {
+      'train_loss': train_loss,
+      'train_accuracy': train_acc,
+    }
+    return visualization_data, summary_ops
+
+
+#############
+# Load data #
+#############
+# data contains: 
+# adj
+# features
+# y_train
+# y_val
+# y_test
+# train_mask
+# val_mask
+# test_mask
+# molecule_partitions
+# num_molecules
+###############
+start_time = time.time()
+data = load_data(FLAGS.data_input_path, FLAGS.data_output_path, FLAGS.should_load_previous_data)
+end_time = time.time()
+####
+print("Finished loading data in {} seconds".format(end_time-start_time))
+
+# Some feature preprocessing and other important quantities
+preprocessed_features = preprocess_features(data['features'])
+adjacency_matrices = preprocess_adj(data['adj'])
+num_adj_matrices = len(data['adj'])
+
 # Define placeholders
 placeholders = {
-    'support': [tf.sparse_placeholder(tf.float32) for _ in range(num_supports)],
-    'features': tf.sparse_placeholder(tf.float32, shape=tf.constant(features[2], dtype=tf.int64)),
-    'labels': tf.placeholder(tf.float32, shape=(None,y_train.shape[1]), name='the_labels'),
-    'labels_mask': tf.placeholder(tf.int32, name='the_mask_of_labels'),
-    'dropout': tf.placeholder_with_default(0., shape=(), name='dropout_meow'),
-    'num_features_nonzero': tf.placeholder(tf.int32),  # helper variable for sparse dropout
-    'molecule_partitions': tf.placeholder(tf.int32),
-    'num_molecules': tf.placeholder(tf.int32,shape=())
+  'adjacency_matrices': [tf.sparse_placeholder(tf.float32) for _ in range(num_adj_matrices)],
+  'features': tf.sparse_placeholder(tf.float32, shape=tf.constant(preprocessed_features[2], dtype=tf.int64)),
+  'labels': tf.placeholder(tf.float32, shape=(None,data['y_train'].shape[1]), name='the_labels'),
+  'labels_mask': tf.placeholder(tf.int32, name='the_mask_of_labels'),
+  'dropout': tf.placeholder_with_default(0., shape=(), name='dropout'),
+  'num_features_nonzero': tf.placeholder(tf.int32),  # helper variable for sparse dropout
+  'molecule_partitions': tf.placeholder(tf.int32),
+  'num_molecules': tf.placeholder(tf.int32,shape=())
 }
 
+# Define inputs for training/testing/validation sets
+train_inputs = {
+  'features': preprocessed_features,
+  'adjacency_matrices': adjacency_matrices,
+  'labels': data['y_train'],
+  'labels_mask': data['train_mask'],
+  'molecule_partitions': data['molecule_partitions'],
+  'num_molecules': data['num_molecules'],
+  'dropout': FLAGS.dropout,
+}
+
+validation_inputs = {
+  'features': preprocessed_features,
+  'adjacency_matrices': adjacency_matrices,
+  'labels': data['y_val'],
+  'labels_mask': data['val_mask'],
+  'molecule_partitions': data['molecule_partitions'],
+  'num_molecules': data['num_molecules'],
+}
+
+testing_inputs = {
+  'features': preprocessed_features,
+  'adjacency_matrices': adjacency_matrices,
+  'labels': data['y_test'],
+  'labels_mask': data['test_mask'],
+  'molecule_partitions': data['molecule_partitions'],
+  'num_molecules': data['num_molecules'],
+}
 
 # Create model
-model = model_func(placeholders, input_dim=features[2][1], logging=True)
-#input_dim is like...if you have k features for each node, then input_dim=k
+model = model_constructor(placeholders,input_dim=preprocessed_features[2][1], logging=True) # input_dim is number of features per node
 
-
-# Define model evaluation function
-def evaluate(features, support, labels, molecule_partitions, num_molecules, placeholders, mask=None):
-    if mask is None:
-        mask = np.array(np.ones(labels.shape[0]), dtype=np.bool)
-    t_test = time.time()
-    feed_dict_val = construct_feed_dict(features, support, labels, mask, molecule_partitions, num_molecules, placeholders)
-    outs_val = sess.run([model.loss, model.accuracy,model.mae], feed_dict=feed_dict_val)
-    return outs_val[0], outs_val[1], outs_val[2], (time.time() - t_test)
-
-
-# Initialize session
+# Setup tensorboard!
 print("Initializing session......")
+
 saver = tf.train.Saver()
 sess = tf.Session()
 
 # Tensorboard stuff
-summary_ops, summary_vars, summary_writer = build_summaries()
+visualization_data, visualization_operation = initialize_tensorboard_outputs()
+visualization_writer = tf.summary.FileWriter('tensorboard/' + FLAGS.output_name + '/', sess.graph)
 
 # Init variables
 print("Initializing variables......")
 sess.run(tf.global_variables_initializer())
 
+# If the user requested to retrain from an existing model, load it now 
 if FLAGS.input_name is not None:
     saver.restore(sess,FLAGS.dir_model+FLAGS.input_name+'/'+FLAGS.input_name)
 
-
-# feed_dict = construct_feed_dict(features, support, y_train, train_mask, molecule_partitions, num_molecules, placeholders)
-    
-# savior = sess.run([model.getmae],feed_dict=feed_dict)
-# print(savior)
-# exit()
-
-#normalize targets in model
-print("Normalizing targets......")
-
+# Normalizes labels in model
+print("Normalizing LABELS......")
 if FLAGS.input_name is None:
-    [m,s]=sess.run([model.get_mean,model.get_std], feed_dict={placeholders['labels']: y_train, placeholders['labels_mask']: train_mask})
+    [m,s]=sess.run([model.get_mean, model.get_std], feed_dict={placeholders['labels']: data['y_train'], placeholders['labels_mask']: data['train_mask']})
 
-cost_val = []
-
-
+# Training
+validation_losses = []
+total_training_time=0.
 for epoch in range(FLAGS.epochs):
 
-    t = time.time()
-    # Construct feed dictionary
-    feed_dict = construct_feed_dict(features, support, y_train, train_mask, molecule_partitions, num_molecules, placeholders)
-    feed_dict.update({placeholders['dropout']: FLAGS.dropout})
-
     # Training step
-    outs = sess.run([model.opt_op, model.loss, model.accuracy,model.outputs,model.mae], feed_dict=feed_dict)
-
-    summary_str = sess.run(summary_ops, feed_dict={
-        summary_vars[0]: outs[1], #training loss
-        summary_vars[1]: outs[2] #training acc
-    })
-    summary_writer.add_summary(summary_str, epoch)
+    train_outputs = train(train_inputs, placeholders)
 
     # Validation
-    cost, acc, mae, duration = evaluate(features, support, y_val, molecule_partitions, num_molecules, placeholders, mask=val_mask)
-    cost_val.append(cost)
+    validation_outputs = evaluate(validation_inputs, placeholders)
 
-    # if (epoch == 40):
-    #     FLAGS.learning_rate = 1.0
-    #     print_learn_rate(FLAGS.learning_rate)
-    # if (epoch == 100):
-    #     FLAGS.learning_rate = 0.5        
-    #     print_learn_rate(FLAGS.learning_rate)
-    # if (epoch == 150):
-    #     FLAGS.learning_rate = 0.1
-    #     print_learn_rate(FLAGS.learning_rate)
-    # if (epoch == 200):
-    #     FLAGS.learning_rate = 0.05        
-    #     print_learn_rate(FLAGS.learning_rate)
-    # if (epoch == 250):
-    #     FLAGS.learning_rate = 0.01
-    #     print_learn_rate(FLAGS.learning_rate)
-    # if (epoch == 300):
-    #     FLAGS.learning_rate = 0.005
-    #     print_learn_rate(FLAGS.learning_rate)
-    # if (epoch == 500):
-    #     FLAGS.learning_rate = 0.001
-    #     print_learn_rate(FLAGS.learning_rate)
-
-    # Log a summary ever 10 steps
-    #if epoch % 10 == 0:
-    #    summary_writer.add_summary(some_kind_of_summary, epoch)
+    # save validation loss so we can see if we need to stop early
+    validation_losses.append(validation_outputs['loss'])
 
     # Print results
-    print("Epoch:", '%04d' % (epoch + 1), "train_loss=", "{:.5f}".format(outs[1]),
-          "val_loss=", "{:.5f}".format(cost), "train_acc= ", str(outs[2]),        
-          " val_acc= ", str(acc),"train_mae= ", str(outs[4]), "time=", "{:.5f}".format(time.time() - t))
+    print("Epoch: ", '%04d' % (epoch + 1),
+          "train_loss: ", "{:.5f}".format(train_outputs['loss']),
+          "val_loss: ", "{:.5f}".format(validation_outputs['loss']),
+          "train_acc: ", str(train_outputs['accuracy']),        
+          "val_acc: ", str(validation_outputs['accuracy']),
+          "train_mae: ", str(train_outputs['mean_absolute_error']),
+          "time: ", "{:.5f}".format(train_outputs['duration']))
 
-    if epoch > FLAGS.early_stopping and cost_val[-1] > np.mean(cost_val[-(FLAGS.early_stopping+1):-1]):
+    # Keep track of time consumed
+    total_training_time += train_outputs['duration']
+
+    # Log data to tensorboard for visualization
+    summary = sess.run(visualization_operation, feed_dict={
+        visualization_data['train_loss']: train_outputs['loss'], #training loss
+        visualization_data['train_accuracy']: train_outputs['accuracy'] #training acc
+    })
+    visualization_writer.add_summary(summary, epoch)
+
+    # check if we need to early stop, check if the average of the last Flags.early_stopping losses are less than the latest
+    if epoch > FLAGS.early_stopping and validation_losses[-1] > np.mean(validation_losses[-(FLAGS.early_stopping+1):-1]):
         print("Early stopping...")
         break
 
-
 print("Optimization Finished!")
 
+# save model in case we want to load it in the future
+saver.save(sess, FLAGS.dir_model+FLAGS.output_name+'/'+FLAGS.output_name)
+visualization_writer.flush()
 
-saver.save(sess,FLAGS.dir_model+FLAGS.output_name+'/'+FLAGS.output_name)
-summary_writer.flush()
+# Run evaluation on the testing set to see how we did!
+testing_outputs = evaluate(testing_inputs, placeholders)
 
-# Testing
-test_cost, test_acc, test_mae, test_duration = evaluate(features, support, y_test, molecule_partitions, num_molecules, placeholders,mask=test_mask)
-print("Test set results:", "cost=", "{:.5f}".format(test_cost),
-      "accuracy= ", str(test_acc), "mae= ", str(test_mae)) #, "time=", "{:.5f}".format(test_duration))
+# Print results
+print("Test set results: ",
+      "loss: ", "{:.5f}".format(testing_outputs['loss']),
+      "accuracy: ", str(testing_outputs['accuracy']),
+      "mae: ", str(testing_outputs['mean_absolute_error']))
 
-print("Tran set results:", "cost=","{:.5f}".format(outs[1]),
-      "accuracy= ", str(outs[2]), "mae= ",str(outs[4]))
+print("Train set results:",
+      "loss: ","{:.5f}".format(train_outputs['loss']),
+      "accuracy: ", str(train_outputs['accuracy']),
+      "mae: ",str(train_outputs['mean_absolute_error']))
 
-print("Vald set results:", "cost=","{:.5f}".format(cost),
-      "accuracy= ", str(acc), "mae= ",str(mae))
+print("Vald set results:", 
+      "loss: ","{:.5f}".format(validation_outputs['loss']),
+      "accuracy: ", str(validation_outputs['accuracy']),
+      "mae: ",str(validation_outputs['mean_absolute_error']))
+
+print("time: ", "{:.5f}".format(total_training_time), "s")
 
 
-# Costs_file = open("wat.txt","a+")
-# Costs_file.write(pklpath + "\n")
+def log_results():
+    return
+
+# Costs_file = open("costs.txt","a+")
+# Costs_file.write(FLAGS.pickle_path + "\n")
 # Costs_file.write("Epochs: " + str(epoch + 1) + "\ntrain_loss= " + str(outs[1]) + 
 #     "      val_loss= " + str(cost) + "\ntrain_acc= " + str(outs[2]) + "\nval_acc= " + 
 #     str(acc) + "\ntrain_mae= " + str(outs[5]))

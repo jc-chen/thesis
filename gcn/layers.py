@@ -1,5 +1,5 @@
 from gcn.inits import *
-from gcn.utils2 import tensor_diff
+from gcn.utils import tensor_diff
 import tensorflow as tf
 
 flags = tf.app.flags
@@ -85,8 +85,9 @@ class Layer(object):
             tf.summary.histogram(self.name + '/vars/' + var, self.vars[var])
 
 
+
 class GraphConvolution(Layer):
-    """Graph convolution layer."""
+    """Graph convolution layer. See section 3.2.3 (I) for more information."""
     def __init__(self, input_dim, output_dim, placeholders, dropout=0.,
                  sparse_inputs=False, act=tf.nn.relu, bias=False,
                  featureless=False, **kwargs):
@@ -98,7 +99,7 @@ class GraphConvolution(Layer):
             self.dropout = 0.
 
         self.act = act
-        self.support = placeholders['support']
+        self.support = placeholders['adjacency_matrices']
         self.sparse_inputs = sparse_inputs
         self.featureless = featureless
         self.bias = bias
@@ -147,7 +148,11 @@ class GraphConvolution(Layer):
 
 
 
+"""The following layers are all ReadOut Layers. See section 3.2.3 (II) for more information."""
+
 class ReadOutSimple(Layer):
+    """A single-layer readout equivalent to calculating a weighted sum of all nodes 
+       pertaining to a molecule outputted from the message-passing phase"""
     def __init__(self, input_dim, features_dim, output_dim, placeholders, dropout=0.,
                  sparse_inputs=False, act=tf.nn.relu, bias=False,
                  featureless=False, **kwargs):
@@ -156,7 +161,7 @@ class ReadOutSimple(Layer):
         if dropout: self.dropout = placeholders['dropout']
         else: self.dropout = 0.
         self.act = act
-        self.support = placeholders['support'] #support is the normalized adj matrix
+        self.support = placeholders['adjacency_matrices'] #support is the normalized adj matrix
         self.sparse_inputs = sparse_inputs
         self.featureless = featureless
         self.bias = bias
@@ -200,6 +205,9 @@ class ReadOutSimple(Layer):
 
 
 class ReadOutSimpleAct(Layer):
+    """Single-layer readout with activation. Identical to ReadOutSimple, except with a
+       tanh activation function wrapped around the weighted sum.
+    """
     def __init__(self, input_dim, features_dim, output_dim, placeholders, dropout=0.,
                  sparse_inputs=False, act=tf.nn.relu, bias=False,
                  featureless=False, **kwargs):
@@ -208,7 +216,7 @@ class ReadOutSimpleAct(Layer):
         if dropout: self.dropout = placeholders['dropout']
         else: self.dropout = 0.
         self.act = act
-        self.support = placeholders['support'] #support is the normalized adj matrix
+        self.support = placeholders['adjacency_matrices'] #support is the normalized adj matrix
         self.sparse_inputs = sparse_inputs
         self.featureless = featureless
         self.bias = bias
@@ -252,6 +260,7 @@ class ReadOutSimpleAct(Layer):
 
 
 class ReadOutSimpleMulti(Layer):
+    """Multi-layer readout with activation"""
     def __init__(self, input_dim, features_dim, output_dim, placeholders, dropout=0.,
                  sparse_inputs=False, act=tf.nn.relu, bias=False,
                  featureless=False, **kwargs):
@@ -260,7 +269,7 @@ class ReadOutSimpleMulti(Layer):
         if dropout: self.dropout = placeholders['dropout']
         else: self.dropout = 0.
         self.act = act
-        self.support = placeholders['support'] #support is the normalized adj matrix
+        self.support = placeholders['adjacency_matrices'] #support is the normalized adj matrix
         self.sparse_inputs = sparse_inputs
         self.featureless = featureless
         self.bias = bias
@@ -273,10 +282,8 @@ class ReadOutSimpleMulti(Layer):
         with tf.variable_scope(self.name + '_vars'):
             self.vars['weights_i'] = glorot([input_dim, input_dim],
                                             name='weights_i')
-
             self.vars['weights_j'] = glorot([input_dim, input_dim],
                                             name='weights_j')   
-
             self.vars['weights_k'] = glorot([input_dim, output_dim],
                                             name='weights_k')         
             if self.bias:
@@ -319,8 +326,8 @@ class ReadOutSimpleMulti(Layer):
         return self.act(output)
 
 
-
 class ReadOutInitSingle(Layer):
+    """Single-layer readout with activation and initial features included"""
     """from 'classes' weights to values"""
     def __init__(self, input_dim, features_dim, output_dim, placeholders, dropout=0.,
                  sparse_inputs=False, act=tf.nn.relu, bias=False,
@@ -331,7 +338,7 @@ class ReadOutInitSingle(Layer):
         else: self.dropout = 0.
 
         self.act = act
-        self.support = placeholders['support'] #support is the normalized adj matrix
+        self.support = placeholders['adjacency_matrices'] #support is the normalized adj matrix
         self.sparse_inputs = sparse_inputs
         self.featureless = featureless
         self.bias = bias
@@ -390,20 +397,12 @@ class ReadOutInitSingle(Layer):
         output = tf.gather(output,self.molecule_partitions)
 
         output = tensor_diff(self, output)
-        
-        #     if not self.featureless:
-        #         pre_sup = dot(x, self.vars['weights_' + str(i)],
-        #                       sparse=self.sparse_inputs)
-        #     else:
-        #         pre_sup = self.vars['weights_' + str(i)]
-        #     support = dot(self.support[i], pre_sup, sparse=True)
-        #     supports.append(support)
-        # output = tf.add_n(supports)
 
         return self.act(output)
 
 
 class ReadOutInitMulti(Layer):
+    """Multi-layer readout with activation and initial features"""
     """from 'classes' weights to values"""
     def __init__(self, input_dim, features_dim, output_dim, placeholders, dropout=0.,
                  sparse_inputs=False, act=tf.nn.relu, bias=False,
@@ -414,7 +413,7 @@ class ReadOutInitMulti(Layer):
         else: self.dropout = 0.
 
         self.act = act
-        self.support = placeholders['support'] #support is the normalized adj matrix
+        self.support = placeholders['adjacency_matrices'] #support is the normalized adj matrix
         self.sparse_inputs = sparse_inputs
         self.featureless = featureless
         self.bias = bias
@@ -487,8 +486,8 @@ class ReadOutInitMulti(Layer):
         return self.act(output)
 
 
-
 class ReadOutInitMultiII(Layer):
+    """A variation of the multi-layer readout with activation and initial features"""
     def __init__(self, input_dim, features_dim, output_dim, placeholders, dropout=0.,
                  sparse_inputs=False, act=tf.nn.relu, bias=False,
                  featureless=False, **kwargs):
@@ -498,7 +497,7 @@ class ReadOutInitMultiII(Layer):
         else: self.dropout = 0.
 
         self.act = act
-        self.support = placeholders['support'] #support is the normalized adj matrix
+        self.support = placeholders['adjacency_matrices'] #support is the normalized adj matrix
         self.sparse_inputs = sparse_inputs
         self.featureless = featureless
         self.bias = bias
@@ -555,75 +554,4 @@ class ReadOutInitMultiII(Layer):
         output = tf.cumsum(output)
         output = tf.gather(output,self.molecule_partitions)
         output = tensor_diff(self, output)
-        return self.act(output)
-
-
-
-class ReadOut4(Layer):
-    def __init__(self, input_dim, features_dim, output_dim, placeholders, dropout=0.,
-                 sparse_inputs=False, act=tf.nn.relu, bias=False,
-                 featureless=False, **kwargs):
-        super(ReadOut4, self).__init__(**kwargs)
-
-        if dropout: self.dropout = placeholders['dropout']
-        else: self.dropout = 0.
-
-        self.act = act
-        self.support = placeholders['support'] #support is the normalized adj matrix
-        self.sparse_inputs = sparse_inputs
-        self.featureless = featureless
-        self.bias = bias
-        self.num_labels = placeholders['labels'].shape[1]
-        self.molecule_partitions = placeholders['molecule_partitions']
-        self.num_molecules = placeholders['num_molecules']
-
-        # helper variable for sparse dropout
-        self.num_features_nonzero = placeholders['num_features_nonzero']
-
-        with tf.variable_scope(self.name + '_vars'):
-            self.vars['weights_i'] = glorot([input_dim, features_dim],
-                                            name='weights_i')        
-            self.vars['weights_j'] = glorot([features_dim, output_dim],
-                                            name='weights_j')        
-            self.vars['weights_k'] = glorot([features_dim, output_dim],
-                                            name='weights_k')       
-            if self.bias:
-                self.vars['bias_i'] = zeros([output_dim],
-                                            name='bias_i')
-                self.vars['bias_j'] = zeros([output_dim],
-                                            name='bias_j')
-        if self.logging:
-            self._log_vars()
-        
-
-    def _call(self, inputs):
-        x = inputs[-1]
-        x_init = inputs[0]
-        x_init =  sparse_dropout(x_init, 1-self.dropout, self.num_features_nonzero)
-        x_init = tf.sparse_tensor_to_dense(x_init,validate_indices=False)
-        
-        # dropout
-        if self.sparse_inputs:
-            x = sparse_dropout(x, 1-self.dropout, self.num_features_nonzero)
-            x = tf.sparse_tensor_to_dense(x,validate_indices=False)
-        else:
-            x = tf.nn.dropout(x, 1-self.dropout)
-
-        nn_i = tf.matmul(x,self.vars['weights_i'])
-        nn_i = tf.multiply(nn_i,x_init)
-        nn_i = tf.matmul(nn_i,self.vars['weights_k'])
-        nn_j = tf.matmul(x_init,self.vars['weights_j'])
-        
-        if self.bias:
-            nn_i += self.vars['bias_i']
-            nn_j += self.vars['bias_j']
-
-        nn_i = tf.nn.sigmoid(nn_i)
-        nn_j = tf.nn.leaky_relu(nn_j)
-
-        output = tf.multiply(nn_i,nn_j)
-        output = tf.cumsum(output)
-        output = tf.gather(output,self.molecule_partitions)
-        output = tensor_diff(self, output)
-
         return self.act(output)
