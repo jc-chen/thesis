@@ -2,15 +2,14 @@
 
 <note about the source of this code>
 
-## General Workflow:
-
 ### Building a network with layers
-#### size of each layer, type of each layer, the layering of the layers, bla bla bla
+#### size of each layer, type of each layer, the layering of the layers
 
 
 
 ### Getting data
-Raw molecular data downloaded from _LINK_ requires some pre-processing so that python can understand some of the floats in the text files. Run `python process_data.py <data directory> <output directory>` to process the entire batch. To randomly select n molecules and copy them to a new directory for training/testing, use randomize_data.py: ```python randomize_data.py <source directory> <destination directory> <n>```
+Raw molecular data downloaded from _LINK_ requires some pre-processing so that python can understand some of the floats in the text files. Run `python process_data.py <data directory> <output directory>` to process the entire batch. To randomly select n molecules and copy them to a new directory for training/testing, use randomize_data.py: 
+```python randomize_data.py <source directory> <destination directory> <n>```
 
 
 
@@ -70,10 +69,10 @@ There are several values that need to be tweaked, depending on what kind of trai
 ### Visualization with tensorboard
 To open tensorboard, run `tensorboard --logdir <path_to_this_project>/tensorboard/` in the terminal and navigate to localhost:6006 in a web browser. In the bottom left of the page you can tick and untick particular models you have saved to compare them.
 
-It is currently sent to generate tensorboard data only at the end of the session. However, if you are running a long training session and want the visualization to update live as you go, move the `visualization_writer.flush()` statement directly under `visualization_writer.add_summary(summary, epoch)` inside the `for epoch` loop. As the flush is a costly operation, only let it execute every N epochs. 
+It is currently sent to generate tensorboard data only at the end of the session. However, if you are running a long training session and want the visualization to update live as you go, move the `visualization_writer.flush()` statement directly under `visualization_writer.add_summary(summary, epoch)` inside the `for epoch` loop. As flush is a costly operation, only let it execute every N epochs. 
 
 
-To add a variable you want to track, modify the `initialize_tensorboard_outputs()` function in train.py to include them. E.g. 
+To add variables you want to track, modify the `initialize_tensorboard_outputs()` function in train.py to include them. E.g. 
 
 ```
 def initialize_tensorboard_outputs():
@@ -102,35 +101,3 @@ def initialize_tensorboard_outputs():
 
 ### Defining your own Model class
 
-
-
-
-
-
-
-
-
-
-
-
-old stuff below
-
-
-
-# gcn directory
-
-## __init__.py
--check this out?
-
-## inits.py
-### Defines different initialization configurations of the learned matrices
-
-
-## layers.py
-### Defines the neural network layers as classes, namely the GraphConvolution class and the various Read Out classes. 
-
-
-
-
-## models.py
-Defines the Model class and the subclass JCNN. The Model class defines basic behaviours of a general model, and its subclass JCNN is one particular type of model. More subclasses can be defined for different flavours of models.
