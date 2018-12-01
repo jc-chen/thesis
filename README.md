@@ -1,9 +1,10 @@
 # thesis
 
-<note about the source of this code>
+
+TODO note about the source of this code: github.com/tkipf/gcn
 
 ### Building a network with layers
-#### size of each layer, type of each layer, the layering of the layers
+#### TODO size of each layer, type of each layer, the layering of the layers
 
 
 
