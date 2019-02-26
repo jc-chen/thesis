@@ -5,7 +5,7 @@ import time
 import tensorflow as tf
 
 from gcn.utils import *
-from gcn.models import JCNN
+from gcn.models import GCNN
 
 import os
 import sys
@@ -13,7 +13,7 @@ import sys
 # Settings
 flags = tf.app.flags
 FLAGS = flags.FLAGS
-flags.DEFINE_string('model', 'jcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
+flags.DEFINE_string('model', 'gcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
 flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
 flags.DEFINE_integer('epochs', 700, 'Number of epochs to train.')
 flags.DEFINE_integer('hidden1', 100, 'Number of units in hidden layer 1.')
@@ -62,8 +62,8 @@ if FLAGS.data_output_path is not None:
       FLAGS.data_output_path += "/"
 
 # get model executable. Add your own model!
-if FLAGS.model == 'jcnn':
-    model_constructor = JCNN
+if FLAGS.model == 'gcnn':
+    model_constructor = GCNN
 # if FLAGS.model == 'your model':
 #     model_constructor = your_model
 else:
@@ -127,6 +127,7 @@ def initialize_tensorboard_outputs():
 # molecule_partitions
 # num_molecules
 ###############
+
 start_time = time.time()
 data = load_data(FLAGS.data_input_path, FLAGS.data_output_path, FLAGS.should_load_previous_data)
 end_time = time.time()
@@ -272,15 +273,5 @@ print("time: ", "{:.5f}".format(total_training_time), "s")
 
 
 def log_results():
-    return
-
-# Costs_file = open("costs.txt","a+")
-# Costs_file.write(FLAGS.pickle_path + "\n")
-# Costs_file.write("Epochs: " + str(epoch + 1) + "\ntrain_loss= " + str(outs[1]) + 
-#     "      val_loss= " + str(cost) + "\ntrain_acc= " + str(outs[2]) + "\nval_acc= " + 
-#     str(acc) + "\ntrain_mae= " + str(outs[5]))
-# Costs_file.write("\n")
-# Costs_file.write("Test cost= " + str(test_cost) + "\nTest_acc= " +str(test_acc))
-# Costs_file.write("\nTest mae= " + str(test_mae))
-# Costs_file.write("\n\n")
-# Costs_file.close()
+  '''Write results to file'''
+  return

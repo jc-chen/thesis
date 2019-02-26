@@ -3,14 +3,14 @@ from __future__ import print_function
 import time
 import tensorflow as tf
 from gcn.utils import *
-from gcn.models import JCNN
+from gcn.models import GCNN
 import os
 
 # Settings
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
-flags.DEFINE_string('model', 'jcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
+flags.DEFINE_string('model', 'gcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
 flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
 flags.DEFINE_integer('epochs', 700, 'Number of epochs to train.')
 flags.DEFINE_integer('hidden1', 70, 'Number of units in hidden layer 1.')
@@ -58,7 +58,7 @@ tf.set_random_seed(seed)
 
 # Load data
 load_previous = 1
-pickle=1
+pickle = 1
 pklpath = FLAGS.pklpath
 
 [adj,features,y_train,y_val,y_test,train_mask,val_mask,test_mask,molecule_partitions,num_molecules]=load_data(FLAGS.data_path,pklpath,pickle,load_previous)
@@ -68,10 +68,10 @@ print("Finished loading data!")
 
 # Some preprocessing
 features = preprocess_features(features)
-if FLAGS.model == 'jcnn':
+if FLAGS.model == 'gcnn':
     support = preprocess_adj(adj)
     num_supports = len(adj)
-    model_func = JCNN
+    model_func = GCNN
 else:
     raise ValueError('Invalid argument for model: ' + str(FLAGS.model))
 

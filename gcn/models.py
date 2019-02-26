@@ -136,9 +136,9 @@ class Model(object):
 
 
 
-class JCNN(Model):
+class GCNN(Model):
     def __init__(self, placeholders, input_dim, **kwargs):
-        super(JCNN, self).__init__(**kwargs)
+        super(GCNN, self).__init__(**kwargs)
 
         self.inputs = placeholders['features']
         self.input_dim = input_dim
