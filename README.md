@@ -1,6 +1,6 @@
 # Prediction of Molecular Properties with Graph Convolution-based Neural Networks
 
-This is a short guide on how to run the neural network and modify it to your purpose. For more details about the project, please refer to my thesis write-up under writeup.pdf. The code in this repository is based upon the work of Kipf & Welling (2016): github.com/tkipf/gcn. The molecular data used to train the network is from the QM9 Dataset quantum-machine.org/datasets.
+This is a short guide on how to run the neural network and modify it to your purpose. For more details about the project, please refer to my thesis write-up under writeup.pdf. The code in this repository is based upon the work of Kipf & Welling (2016)[github.com/tkipf/gcn](github.com/tkipf/gcn). The molecular data used to train the network is from the QM9 Dataset [quantum-machine.org/datasets](quantum-machine.org/datasets).
 
 
 
@@ -66,7 +66,6 @@ There are several values that need to be tweaked, depending on what kind of trai
 
 #### Testing
 To use the neural network for prediction, run results.py  TODO
-
 
 ### Visualization with tensorboard
 To open tensorboard, run `tensorboard --logdir <path_to_this_project>/tensorboard/` in the terminal and navigate to localhost:6006 in a web browser. In the bottom left of the page you can tick and untick particular models you have saved to compare them.
