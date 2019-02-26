@@ -1,21 +1,26 @@
 # Prediction of Molecular Properties with Graph Convolution-based Neural Networks
 
-This is a short guide on how to train and run the neural network. For more details about the project, please refer to my thesis write-up under writeup.pdf. The code in this repository is based upon the work of Kipf & Welling [(github.com/tkipf/gcn)](github.com/tkipf/gcn). The molecular data used to train the network is from the QM9 Dataset [(quantum-machine.org/datasets)](quantum-machine.org/datasets).
+This is a quick guide on how to train and run the neural network. For more details, please refer to my thesis write-up under writeup.pdf. The code in this repository is based upon the work of Kipf & Welling [(github.com/tkipf/gcn)](github.com/tkipf/gcn). The molecular data used to train the network is from the QM9 Dataset [(quantum-machine.org/datasets)](quantum-machine.org/datasets).
 
 
 
 ### Building a neural network using layers
 
-#### Layer class
-
-TODO -structure of a neural network: a sequence of layers; size/type of each layer, how many layers you have, how you order the layers
-
-
 #### Model class
 TODO
+models.py contains a Model class and a GCNN class. The Model class specifies what needs to be defined for a model, such as a loss function, an accuracy function, and a neural network structure. The GCNN class (stands for Graph Convolutional Neural Network) is a particular kind of model that has a neural network structure based on several graph convolution layers followed by a read out layer. To specify the sequence of layers, adjust the build() function. The size of each layer can be specified in train.py when training/running
+
+
+
 To adjust the sequence of layers......
 _build()
 append layers (Convolution, readout)
+
+
+
+#### Layer class
+The two basic types of layers available in the Layer class are 
+TODO -structure of a neural network: a sequence of layers; size/type of each layer, how many layers you have, how you order the layers
 
 
 ### Getting data
@@ -74,7 +79,7 @@ There are several values that need to be tweaked, depending on what kind of trai
 
 
 #### Testing
-To use the neural network for prediction, run results.py  TODO
+To use the neural network for prediction, run results.py. 
 
 ### Visualization with tensorboard
 To open tensorboard, run `tensorboard --logdir <path_to_this_project>/tensorboard/` in the terminal and navigate to localhost:6006 in a web browser. In the bottom left of the page you can tick and untick particular models you have saved to compare them.
