@@ -1,12 +1,21 @@
 # Prediction of Molecular Properties with Graph Convolution-based Neural Networks
 
-This is a short guide on how to train and run the neural network. For more details about the project, please refer to my thesis write-up under writeup.pdf. The code in this repository is based upon the work of Kipf & Welling (2016) [github.com/tkipf/gcn](github.com/tkipf/gcn). The molecular data used to train the network is from the QM9 Dataset [quantum-machine.org/datasets](quantum-machine.org/datasets).
+This is a short guide on how to train and run the neural network. For more details about the project, please refer to my thesis write-up under writeup.pdf. The code in this repository is based upon the work of Kipf & Welling [(github.com/tkipf/gcn)](github.com/tkipf/gcn). The molecular data used to train the network is from the QM9 Dataset [(quantum-machine.org/datasets)](quantum-machine.org/datasets).
 
 
 
 ### Building a neural network using layers
-#### TODO size of each layer, type of each layer, the layering of the layers
 
+#### Layer class
+
+TODO -structure of a neural network: a sequence of layers; size/type of each layer, how many layers you have, how you order the layers
+
+
+#### Model class
+TODO
+To adjust the sequence of layers......
+_build()
+append layers (Convolution, readout)
 
 
 ### Getting data
