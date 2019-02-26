@@ -1,15 +1,16 @@
-# thesis
+# Prediction of Molecular Properties with Graph Convolution-based Neural Networks
+
+This is a short guide on how to run the neural network and modify it to your purpose. For more details about the project, please refer to my thesis write-up under writeup.pdf. The code in this repository is based upon the work of Kipf & Welling (2016): github.com/tkipf/gcn. The molecular data used to train the network is from the QM9 Dataset quantum-machine.org/datasets.
 
 
-TODO note about the source of this code: github.com/tkipf/gcn
 
-### Building a network with layers
+### Building a neural network using layers
 #### TODO size of each layer, type of each layer, the layering of the layers
 
 
 
 ### Getting data
-Raw molecular data downloaded from _LINK_ requires some pre-processing so that python can understand some of the floats in the text files. Run `python process_data.py <data directory> <output directory>` to process the entire batch. To randomly select n molecules and copy them to a new directory for training/testing, use randomize_data.py: 
+Raw molecular data from the QM9 Dataset require some pre-processing so that python can understand some of the floats in the text files. Run `python process_data.py <data directory> <output directory>` to process the entire batch. To randomly select n molecules and copy them to a new directory for training/testing, use randomize_data.py: 
 ```python randomize_data.py <source directory> <destination directory> <n>```
 
 
@@ -64,7 +65,7 @@ There are several values that need to be tweaked, depending on what kind of trai
 
 
 #### Testing
-TODO results.py 
+To use the neural network for prediction, run results.py  TODO
 
 
 ### Visualization with tensorboard
@@ -95,12 +96,4 @@ def initialize_tensorboard_outputs():
     return visualization_data, summary_ops
 
 ```
-
-
-
-
-
-### Defining your own Model class
-TODO
-
 
