@@ -1,6 +1,6 @@
 # Prediction of Molecular Properties with Graph Convolution-based Neural Networks
 
-This is a short guide on how to run the neural network and modify it to your purpose. For more details about the project, please refer to my thesis write-up under writeup.pdf. The code in this repository is based upon the work of Kipf & Welling (2016)[github.com/tkipf/gcn](github.com/tkipf/gcn). The molecular data used to train the network is from the QM9 Dataset [quantum-machine.org/datasets](quantum-machine.org/datasets).
+This is a short guide on how to train and run the neural network. For more details about the project, please refer to my thesis write-up under writeup.pdf. The code in this repository is based upon the work of Kipf & Welling (2016) [github.com/tkipf/gcn](github.com/tkipf/gcn). The molecular data used to train the network is from the QM9 Dataset [quantum-machine.org/datasets](quantum-machine.org/datasets).
 
 
 
@@ -21,7 +21,7 @@ Simply run ```python train.py <data directory> ``` to train, validate, and test 
 
 
 #### Parsing data, saving and loading parsed data
-`load_data(...)` (defined in utils.py) handles parsing the .xyz files, putting relevant information into matrices, normalizing features, and separating into training/validation/test sets. To load data for testing only, use `load_test_data()` instead. To save these matrices (and you will want to save them--for repeatability and efficiency, since building them takes some time), set the flag `data_output_path` to whichever directory you want to save in. i.e.
+`load_data(...)` defined in utils.py handles parsing the .xyz files, putting relevant information into matrices, normalizing features, and separating into training/validation/test sets. To load data for testing only, use `load_test_data()` instead. To save these matrices (and you will want to save them--for repeatability and efficiency, since building them takes some time), set the flag `data_output_path` to whichever directory you want to save in. i.e.
 ```
 python train.py <data directory> --data_output_path <output directory>
 ```
