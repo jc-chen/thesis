@@ -9,8 +9,7 @@ import os
 # Settings
 flags = tf.app.flags
 FLAGS = flags.FLAGS
-flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
-flags.DEFINE_string('model', 'gcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
+flags.DEFINE_string('model', 'gcnn', 'Model string.') 
 flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
 flags.DEFINE_integer('epochs', 700, 'Number of epochs to train.')
 flags.DEFINE_integer('hidden1', 70, 'Number of units in hidden layer 1.')
@@ -25,7 +24,7 @@ flags.DEFINE_float('weight_decay', 5e-4, 'Weight for L2 loss on embedding matrix
 flags.DEFINE_integer('early_stopping', 200, 'Tolerance for early stopping (# of epochs).')
 flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 
-# command line arguments
+# Command line arguments
 flags.DEFINE_integer('random_seed',12,'random seed for repeatability')
 flags.DEFINE_string('data_path','error','data path')
 flags.DEFINE_string('dir_model','models/','directory for storing saved models')
@@ -68,6 +67,8 @@ print("Finished loading data!")
 
 # Some preprocessing
 features = preprocess_features(features)
+
+# Get model executable
 if FLAGS.model == 'gcnn':
     support = preprocess_adj(adj)
     num_supports = len(adj)
@@ -90,8 +91,6 @@ placeholders = {
 
 # Create model
 model = model_func(placeholders, input_dim=features[2][1], logging=True)
-#input_dim is like...if you have k features for each node, then input_dim=k
-
 
 # Define model evaluation function
 def evaluate(features, support, labels, molecule_partitions, num_molecules, placeholders, mask=None):
@@ -119,17 +118,11 @@ if FLAGS.input_name is not None:
     saver.restore(sess,FLAGS.dir_model+FLAGS.input_name+'/'+FLAGS.input_name)
 
 
-# feed_dict = construct_feed_dict(features, support, y_train, train_mask, molecule_partitions, num_molecules, placeholders)
-# maevalue = sess.run([model.getmae],feed_dict=feed_dict)
-
-
 #normalize targets in model
 print("Normalizing targets......")
 
 if FLAGS.input_name is None:
     [m,s]=sess.run([model.get_mean,model.get_std], feed_dict={placeholders['labels']: y_train, placeholders['labels_mask']: train_mask})
-
-cost_val = []
 
 
 # Testing

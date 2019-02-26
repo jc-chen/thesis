@@ -13,7 +13,7 @@ import sys
 # Settings
 flags = tf.app.flags
 FLAGS = flags.FLAGS
-flags.DEFINE_string('model', 'gcnn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
+flags.DEFINE_string('model', 'gcnn', 'Model string.')  
 flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
 flags.DEFINE_integer('epochs', 700, 'Number of epochs to train.')
 flags.DEFINE_integer('hidden1', 100, 'Number of units in hidden layer 1.')
@@ -34,14 +34,14 @@ flags.DEFINE_float('weight_decay', 5e-4, 'Weight for L2 loss on embedding matrix
 flags.DEFINE_integer('early_stopping', 200, 'Tolerance for early stopping (# of epochs).')
 flags.DEFINE_integer('max_degree', 3, 'Maximum Chebyshev polynomial degree.')
 
-# command line arguments
+# Command line arguments
 flags.DEFINE_integer('random_seed',12,'random seed for repeatability')
 flags.DEFINE_string('data_input_path',sys.argv[1],'data path')
 flags.DEFINE_string('dir_model','models/','directory for storing saved models')
 flags.DEFINE_string('output_name','unnamed_model','name of the saved model')
 flags.DEFINE_string('input_name',None,'name of the saved model')
 
-# flags for saving and loading data
+# Flags for saving and loading data
 flags.DEFINE_bool('should_load_previous_data', False, 'should we load data from a previous execution?')
 flags.DEFINE_string('data_output_path', None, 'data_output_path')
 
@@ -61,7 +61,7 @@ if FLAGS.data_output_path is not None:
   if not FLAGS.data_output_path[-1]=="/":
       FLAGS.data_output_path += "/"
 
-# get model executable. Add your own model!
+# Get model executable
 if FLAGS.model == 'gcnn':
     model_constructor = GCNN
 # if FLAGS.model == 'your model':
@@ -183,13 +183,10 @@ testing_inputs = {
 # Create model
 model = model_constructor(placeholders,input_dim=preprocessed_features[2][1], logging=True) # input_dim is number of features per node
 
-# Setup tensorboard!
+# Setup tensorboard
 print("Initializing session......")
-
 saver = tf.train.Saver()
 sess = tf.Session()
-
-# Tensorboard stuff
 visualization_data, visualization_operation = initialize_tensorboard_outputs()
 visualization_writer = tf.summary.FileWriter('tensorboard/' + FLAGS.output_name + '/', sess.graph)
 
@@ -270,8 +267,3 @@ print("Vald set results:",
       "mae: ",str(validation_outputs['mean_absolute_error']))
 
 print("time: ", "{:.5f}".format(total_training_time), "s")
-
-
-def log_results():
-  '''Write results to file'''
-  return
