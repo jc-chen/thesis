@@ -12,7 +12,7 @@ models.py contains a Model class and a GCNN class. The Model class specifies wha
 
 #### Layer class
 The two basic types of layers available in the Layer class are GraphConvolution and ReadOut layers. For more information on how these layers work, please refer to comments in the code or writeup.pdf.  
-TODO
+
 
 ### Getting data
 Raw molecular data from the QM9 Dataset require some pre-processing so that python can understand some of the floats in the text files. Run `python process_data.py <data directory> <output directory>` to process the entire batch. To randomly select n molecules and copy them to a new directory for training/testing, use randomize_data.py: 
